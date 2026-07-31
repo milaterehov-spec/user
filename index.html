@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Магазин: каталог и заказ</title>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --accent: #3498db;
+            --danger: #d9534f;
+            --warning: #f39c12;
+            --success: #27ae60;
+            --bg: #f4f6f9;
+            --panel-bg: #ffffff;
+        }
+        body { background-color: var(--bg); font-family: Arial, sans-serif; margin: 0; padding: 0; color: #333; }
+        header { background: var(--primary); color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; }
+        .cart-summary { background: #fff; border: 1px solid #ddd; padding: 8px 14px; border-radius: 4px; cursor: pointer; }
+        .cart-total { font-weight: bold; color: var(--accent); }
+        .wrapper { max-width: 1100px; margin: 20px auto; padding: 0 15px; }
+        .search-box { margin-bottom: 20px; text-align: center; }
+        #userSearch { padding: 8px 12px; border: 1px solid #ccc; border-radius: 4px; width: 300px; }
+        .products-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 20px; }
+        .product-card { background: var(--panel-bg); border: 1px solid #e0e0e0; border-radius: 8px; padding: 16px; text-align: center; box-shadow: 0 2px 6px rgba(0,0,0,0.06); display: flex; flex-direction: column; justify-content: space-between; }
+        .product-name { font-weight: bold; font-size: 1.05rem; margin-bottom: 8px; word-break: break-word; }
+        .product-price { font-size: 1.1rem; color: var(--primary); margin-bottom: 10px; font-weight: 600; }
+        .stock-badge { display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 0.85rem; font-weight: 500; margin-bottom: 12px; }
+        .stock-ok { background: #e8f5e9; color: var(--success); }
+        .stock-medium { background: #fff3cd; color: var(--warning); }
+        .stock-low { background: #f8d7da; color: var(--danger); }
+        button.btn-add { background: var(--success); color: white; border: none; padding: 10px 16px; border-radius: 6px; cursor: pointer; font-size: 1rem; width: 100%; }
+        button.btn-add:hover { background: #219150; }
+        button.btn-add:disabled { background: #ccc; cursor: not-allowed; }
+        .cart-panel { background: var(--panel-bg); border-radius: 8px; padding: 20px; margin-top: 30px; box-shadow: 0 2px 6px rgba(0,0,0,0.08); }
+        .cart-empty { color: #888; text-align: center; padding: 20px; }
+        .cart-list { width: 100%; border-collapse: collapse; }
+        .cart-list th, .cart-list td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+        .cart-qty-input { width: 60px; padding: 6px; border: 1px solid #ccc; border-radius: 4px; text-align: center; }
+        .btn-remove { background: transparent; border: 1px solid #ff4d4d; color: #ff4d4d; padding: 4px 10px; border-radius: 4px; cursor: pointer; }
+        .order-form { margin-top: 25px; background: var(--panel-bg); padding: 20px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.08); }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+        .form-full { grid-column: 1 / -1; }
+        input, textarea { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
+        button.btn-submit { background: var(--primary); color: white; border: none; padding: 12px 24px; border-radius: 6px; cursor: pointer; font-size: 1.05rem; margin-top: 10px; }
+        button.btn-submit:hover { background: #1a252f; }
+        footer { text-align: center; padding: 20px; color: #888; font-size: 0.9rem; }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Магазин: каталог и заказ</h1>
+        <div class="cart-summary" onclick="window.scrollTo({top: document.getElementById('cart').offsetTop, behavior: 'smooth'})">
+            Корзина: <span class="cart-total" id="cartTotal">0 ₽</span>
+            (<span id="cartCount">0</span> позиций)
+        </div>
+    </header>
+
+    <div class="wrapper">
+        <div class="search-box">
+            <input type="text" id="userSearch" placeholder="Поиск товара…">
+        </div>
+        <div class="products-grid" id="productsGrid">
+            <!-- Карточки товаров будут добавлены JS -->
+        </div>
+    </div>
+
+    <div class="wrapper" id="cart">
+        <div class="cart-panel">
+            <h2>Ваша корзина</h2>
+            <table class="cart-list" id="cartTable">
+                <thead>
+                    <tr>
+                        <th>Товар</th>
+                        <th>Цена (₽)</th>
+                        <th>Кол-во</th>
+                        <th>Сумма (₽)</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody id="cartBody">
+                    <!-- Позиции корзины будут добавлены JS -->
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="3" style="text-align:right; font-weight:bold;">Итого:</td>
+                        <td id="cartFooterTotal" style="font-weight:bold; text-align:left;">0 ₽</td>
+                        <td></td>
+                    </tr>
+                </tfoot>
+            </table>
+            <div id="cartEmpty" class="cart-empty" style="display:none;">Корзина пуста</div>
+        </div>
+
+        <div class="order-form">
+            <h3>Оформить заказ</h3>
+            <p style="margin-bottom:15px; color:#666;">Поля обязательны для заполнения</p>
+            <form id="orderForm">
+                <div class="form-row">
+                    <div>
+                        <label><b>ФИО</b></label>
+                        <input type="text" required placeholder="Иванов Иван Иванович">
+                    </div>
+                    <div>
+                        <label><b>Телефон</b></label>
+                        <input type="tel" required placeholder="+7 (999) 000-00-00">
+                    </div>
+                </div>
+                <div class="form-row form-full">
+                    <label><b>Комментарий к заказу</b></label>
+                    <textarea rows="3" placeholder="Самовывоз, доставка, особые пожелания…"></textarea>
+                </div>
+                <button type="submit" class="btn-submit">Отправить заказ</button>
+            </form>
+        </div>
+    </div>
+
+    <footer>
+        Режим прототипа. Данные не сохраняются в базе.
+    </footer>
+
+    <script>
+        const products = [
+            { id: '1', name: 'Масло сливочное безлактозное DANKE 82.5%, фас. в фольгу, 160гр', price: 135, stock: 9 },
+            { id: '2', name: 'Молоко 1,5% ультрапаст "Тетра-Брик-Асептик-Сквэр" 1000мл ТМ "Милкавита"', price: 65, stock: 126 },
+            { id: '3', name: 'Молоко 3,2% ультрапаст "Тетра-Брик-Асептик-Сквэр" 1000мл ТМ "Милкавита"', price: 85, stock: 4 },
+            { id: '4', name: 'Напиток Тайран по-турецки со вкусом солен огурца с укропом м.д.ж. 1,5%, стакан из полипропил, 220 гр', price: 22, stock: 4 },
+            { id: '5', name: 'Сливки питьевые ультрапастеризованные массовой долей жира 20%, 500г', price: 115, stock: 529},
+            { id: '6', name: 'Кефир 2,5% пэт-бутылка 900г ТМ "Милкавита"', price: 55, stock: 60}
+        ];
+
+        const grid = document.getElementById('productsGrid');
+        const searchInput = document.getElementById('userSearch');
+        const cartBody = document.getElementById('cartBody');
+        const cartEmpty = document.getElementById('cartEmpty');
+        const cartTotalEl = document.getElementById('cartTotal');
+        const cartCountEl = document.getElementById('cartCount');
+        const cartFooterTotalEl = document.getElementById('cartFooterTotal');
+
+        let cart = [];
+
+        function renderProducts(list) {
+            grid.innerHTML = '';
+            list.forEach(p => {
+                const el = document.createElement('div');
+                el.className = 'product-card';
+
+                let stockClass = 'stock-ok';
+                let stockText = `${p.stock} шт в наличии`;
+                if (p.stock < 10) {
+                    stockClass = 'stock-low';
+                    stockText = `ОСТАТОК: ${p.stock} шт — мало!`;
+                } else if (p.stock < 30) {
+                    stockClass = 'stock-medium';
+                    stockText = `Осталось: ${p.stock} шт`;
+                }
+
+                const btnDisabled = p.stock <= 0 ? 'disabled' : '';
+                const btnText = p.stock <= 0 ? 'Нет в наличии' : 'В корзину';
+
+                el.innerHTML = `
+                    <div class="product-name">${p.name}</div>
+                    <div class="product-price">${p.price} ₽</div>
+                    <div class="stock-badge ${stockClass}">${stockText}</div>
+                    <button class="btn-add" ${btnDisabled} onclick="addToCart('${p.id}')">${btnText}</button>
+                `;
+                grid.appendChild(el);
+            });
+        }
+
+        searchInput.addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase();
+            const filtered = products.filter(p => p.name.toLowerCase().includes(query));
+            renderProducts(filtered);
+        });
+
+        window.addToCart = function(id) {
+            const product = products.find(p => p.id === id);
+            if (!product) return;
+            const existing = cart.find(c => c.id === id);
+            if (existing) {
+                if (existing.qty < product.stock) {
+                    existing.qty += 1;
+                } else {
+                    alert('Это максимальное количество товара на складе!');
+                    return;
+                }
+            } else {
+                cart.push({ ...product, qty: 1 });
+            }
+            updateCart();
+        };
+
+        function setCartQty(id, delta) {
+            const item = cart.find(c => c.id === id);
+            if (!item) return;
+            const maxQty = products.find(p => p.id === id).stock;
+            item.qty = Math.max(1, Math.min(item.qty + delta, maxQty));
+            updateCart();
+        }
+
+        function removeFromCart(id) {
+            cart = cart.filter(c => c.id !== id);
+            updateCart();
+        }
+
+        function updateCart() {
+            cartBody.innerHTML = '';
+            let total = 0;
+            let count = 0;
+
+            cart.forEach(item => {
+                const sum = item.price * item.qty;
+                total += sum;
+                count += item.qty;
+
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${item.name}</td>
+                    <td>${item.price} ₽</td>
+                    <td>
+                        <button onclick="setCartQty('${item.id}', -1)" style="padding:2px 8px; margin-right:4px;">−</button>
+                        <input type="number" class="cart-qty-input" value="${item.qty}" readonly>
+                        <button onclick="setCartQty('${item.id}', 1)" style="padding:2px 8px;">+</button>
+                    </td>
+                    <td>${sum} ₽</td>
+                    <td><button class="btn-remove" onclick="removeFromCart('${item.id}')">Удалить</button></td>
+                `;
+                cartBody.appendChild(row);
+            });
+
+            if (cart.length === 0) {
+                cartEmpty.style.display = 'block';
+                cartTotalEl.textContent = '0 ₽';
+                cartCountEl.textContent = '0';
+                cartFooterTotalEl.textContent = '0 ₽';
+            } else {
+                cartEmpty.style.display = 'none';
+                cartTotalEl.textContent = total + ' ₽';
+                cartCountEl.textContent = count;
+                cartFooterTotalEl.textContent = total + ' ₽';
+            }
+        }
+
+        document.getElementById('orderForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            if (cart.length === 0) {
+                alert('Корзина пуста — нельзя оформить заказ');
+                return;
+            }
+
+            // Собираем данные заказа
+            const form = this;
+            const order = {
+                id: Date.now(), // временный ID
+                timestamp: new Date().toLocaleString('ru-RU'),
+                user: {
+                    name: form[0].value,
+                    phone: form[1].value,
+                    comment: form[2].value
+                },
+                items: [...cart],
+                total: cart.reduce((sum, i) => sum + i.price * i.qty, 0)
+            };
+
+            // Сохраняем заказ в localStorage (чтобы админ мог его прочитать)
+            let orders = JSON.parse(localStorage.getItem('shop_orders')) || [];
+            orders.push(order);
+            localStorage.setItem('shop_orders', JSON.stringify(orders));
+
+            alert('Заказ оформлен! Спасибо.');
+            cart = [];
+            updateCart();
+        });
+
+        renderProducts(products);
+    </script>
+</body>
+</html>
