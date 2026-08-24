@@ -22,20 +22,25 @@
         .search-box { margin-bottom: 20px; text-align: center; }
         #userSearch { padding: 8px 12px; border: 1px solid #ccc; border-radius: 4px; width: 300px; }
         .products-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 20px; }
-        .product-card { background: var(--panel-bg); border: 1px solid #e0e0e0; border-radius: 8px; padding: 16px; text-align: center; box-shadow: 0 2px 6px rgba(0,0,0,0.06); display: flex; flex-direction: column; justify-content: space-between; }
+        .product-card { background: var(--panel-bg); border: 1px solid #e0e0e0; border-radius: 8px; padding: 16px; text-align: center; box-shadow: 0 2px 6px rgba(0,0,0,0.06); display: flex; flex-direction: column; justify-content: space-between; height: 100%; }
         .product-name { font-weight: bold; font-size: 1.05rem; margin-bottom: 8px; word-break: break-word; }
         .product-price { font-size: 1.1rem; color: var(--primary); margin-bottom: 10px; font-weight: 600; }
+        .product-barcode { font-size: 1rem; color: #666; margin-bottom: 8px; font-family: monospace; letter-spacing: 0.5px; }
+        .product-expiry { font-size: 0.85rem; margin-bottom: 10px; }
+        .expiry-ok { color: #27ae60; }
+        .expiry-soon { color: #f39c12; }
+        .expiry-expired { color: #c0392b; font-weight: bold; }
         .stock-badge { display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 0.85rem; font-weight: 500; margin-bottom: 12px; }
         .stock-ok { background: #e8f5e9; color: var(--success); }
         .stock-medium { background: #fff3cd; color: var(--warning); }
         .stock-low { background: #f8d7da; color: var(--danger); }
-        button.btn-add { background: var(--success); color: white; border: none; padding: 10px 16px; border-radius: 6px; cursor: pointer; font-size: 1rem; width: 100%; }
+        button.btn-add { background: var(--success); color: white; border: none; padding: 10px 16px; border-radius: 6px; cursor: pointer; font-size: 1rem; width: 100%; margin-top: auto; }
         button.btn-add:hover { background: #219150; }
         button.btn-add:disabled { background: #ccc; cursor: not-allowed; }
         .cart-panel { background: var(--panel-bg); border-radius: 8px; padding: 20px; margin-top: 30px; box-shadow: 0 2px 6px rgba(0,0,0,0.08); }
         .cart-empty { color: #888; text-align: center; padding: 20px; }
         .cart-list { width: 100%; border-collapse: collapse; }
-        .cart-list th, .cart-list td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+        .cart-list th, .cart-list td { border: 1px solid #ddd; padding: 10px; text-align: left; vertical-align: middle; }
         .cart-qty-input { width: 60px; padding: 6px; border: 1px solid #ccc; border-radius: 4px; text-align: center; }
         .btn-remove { background: transparent; border: 1px solid #ff4d4d; color: #ff4d4d; padding: 4px 10px; border-radius: 4px; cursor: pointer; }
         .order-form { margin-top: 25px; background: var(--panel-bg); padding: 20px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.08); }
@@ -72,6 +77,8 @@
                 <thead>
                     <tr>
                         <th>Товар</th>
+                        <th>ШК</th>
+                        <th>Годен до</th>
                         <th>Цена (₽)</th>
                         <th>Кол-во</th>
                         <th>Сумма (₽)</th>
@@ -83,7 +90,7 @@
                 </tbody>
                 <tfoot>
                     <tr>
-                        <td colspan="3" style="text-align:right; font-weight:bold;">Итого:</td>
+                        <td colspan="5" style="text-align:right; font-weight:bold;">Итого:</td>
                         <td id="cartFooterTotal" style="font-weight:bold; text-align:left;">0 ₽</td>
                         <td></td>
                     </tr>
@@ -120,14 +127,14 @@
     </footer>
 
     <script>
-        const products = [
-            { id: '1', name: 'Масло сливочное безлактозное DANKE 82.5%, фас. в фольгу, 160гр', price: 135, stock: 9 },
-            { id: '2', name: 'Молоко 1,5% ультрапаст "Тетра-Брик-Асептик-Сквэр" 1000мл ТМ "Милкавита"', price: 65, stock: 126 },
-            { id: '3', name: 'Молоко 3,2% ультрапаст "Тетра-Брик-Асептик-Сквэр" 1000мл ТМ "Милкавита"', price: 85, stock: 4 },
-            { id: '4', name: 'Напиток Тайран по-турецки со вкусом солен огурца с укропом м.д.ж. 1,5%, стакан из полипропил, 220 гр', price: 22, stock: 4 },
-            { id: '5', name: 'Сливки питьевые ультрапастеризованные массовой долей жира 20%, 500г', price: 115, stock: 529},
-            { id: '6', name: 'Кефир 2,5% пэт-бутылка 900г ТМ "Милкавита"', price: 55, stock: 60}
-        ];
+const products = [ 
+{ id: '1', name: 'Масло сливочное безлактозное DANKE 82.5%, фас. в фольгу, 160гр', price: 135, stock: 9, barcode: '4607012345678', expiry: '2026-10-15' }, 
+{ id: '2', name: 'Молоко 1,5% ультрапаст "Тетра-Брик-Асептик-Сквэр" 1000мл ТМ "Милкавита"', price: 65, stock: 126, barcode: '4810123000001', expiry: '2026-09-01' }, 
+{ id: '3', name: 'Молоко 3,2% ультрапаст "Тетра-Брик-Асептик-Сквэр" 1000мл ТМ "Милкавита"', price: 85, stock: 4, barcode: '4810123000018', expiry: '2026-08-28' }, 
+{ id: '4', name: 'Напиток Тайран по-турецки со вкусом солен огурца с укропом м.д.ж. 1,5%, стакан из полипропил, 220 гр', price: 22, stock: 4, barcode: '4600123000025', expiry: '2026-08-23' }, 
+{ id: '5', name: 'Сливки питьевые ультрапастеризованные массовой долей жира 20%, 500г', price: 115, stock: 529, barcode: '4600123000032', expiry: '2026-12-01' }, 
+{ id: '6', name: 'Кефир 2,5% пэт-бутылка 900г ТМ "Милкавита"', price: 55, stock: 60, barcode: '4600123000049', expiry: '2026-08-25' } 
+];
 
         const grid = document.getElementById('productsGrid');
         const searchInput = document.getElementById('userSearch');
@@ -145,6 +152,20 @@
                 const el = document.createElement('div');
                 el.className = 'product-card';
 
+                // Проверка срока годности
+                const expiryDate = new Date(p.expiry);
+                const today = new Date();
+                today.setHours(0, 0, 0, 0); // Сравниваем только даты без времени
+                
+                let expiryClass = 'expiry-ok';
+                if (expiryDate <= today) {
+                    expiryClass = 'expiry-expired';
+                } else if ((expiryDate - today) / (1000 * 60 * 60 * 24) <= 7) {
+                    expiryClass = 'expiry-soon';
+                }
+
+                const expiryText = p.expiry ? `до ${p.expiry}` : '—';
+
                 let stockClass = 'stock-ok';
                 let stockText = `${p.stock} шт в наличии`;
                 if (p.stock < 10) {
@@ -155,19 +176,23 @@
                     stockText = `Осталось: ${p.stock} шт`;
                 }
 
-                const btnDisabled = p.stock <= 0 ? 'disabled' : '';
-                const btnText = p.stock <= 0 ? 'Нет в наличии' : 'В корзину';
+                // Блокируем товар, если он просрочен или закончился
+                const isExpired = expiryDate <= today;
+                const btnDisabled = p.stock <= 0 || isExpired ? 'disabled' : '';
+                const btnText = p.stock <= 0 ? 'Нет в наличии' : (isExpired ? 'Просрочен' : 'В корзину');
 
                 el.innerHTML = `
                     <div class="product-name">${p.name}</div>
                     <div class="product-price">${p.price} ₽</div>
+                    <div class="product-barcode">ШК: ${p.barcode}</div>
+                    <div class="product-expiry ${expiryClass}">Срок годн.: ${expiryText}</div>
                     <div class="stock-badge ${stockClass}">${stockText}</div>
-                    <button class="btn-add" ${btnDisabled} onclick="addToCart('${p.id}')">${btnText}</button>
+                    <button class="btn-add" data-id="${p.id}" ${btnDisabled} onclick="addToCart('${p.id}')">${btnText}</button>
                 `;
                 grid.appendChild(el);
             });
         }
-
+        
         searchInput.addEventListener('input', (e) => {
             const query = e.target.value.toLowerCase();
             const filtered = products.filter(p => p.name.toLowerCase().includes(query));
@@ -177,6 +202,16 @@
         window.addToCart = function(id) {
             const product = products.find(p => p.id === id);
             if (!product) return;
+            
+            // Дополнительная проверка перед добавлением (защита от быстрого клика/скана)
+            const expiryDate = new Date(product.expiry);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            if (expiryDate <= today || product.stock <= 0) {
+                alert('Этот товар нельзя добавить в корзину.');
+                return;
+            }
+
             const existing = cart.find(c => c.id === id);
             if (existing) {
                 if (existing.qty < product.stock) {
@@ -186,7 +221,15 @@
                     return;
                 }
             } else {
-                cart.push({ ...product, qty: 1 });
+                cart.push({ 
+                    id: product.id, 
+                    name: product.name, 
+                    price: product.price, 
+                    stock: product.stock, 
+                    barcode: product.barcode,
+                    expiry: product.expiry, /* Сохраняем срок годности */
+                    qty: 1 
+                });
             }
             updateCart();
         };
@@ -217,6 +260,8 @@
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td>${item.name}</td>
+                    <td class="cart-barcode-cell">${item.barcode}</td>
+                    <td>${item.expiry}</td>
                     <td>${item.price} ₽</td>
                     <td>
                         <button onclick="setCartQty('${item.id}', -1)" style="padding:2px 8px; margin-right:4px;">−</button>
@@ -249,10 +294,9 @@
                 return;
             }
 
-            // Собираем данные заказа
             const form = this;
             const order = {
-                id: Date.now(), // временный ID
+                id: Date.now(),
                 timestamp: new Date().toLocaleString('ru-RU'),
                 user: {
                     name: form[0].value,
@@ -263,7 +307,6 @@
                 total: cart.reduce((sum, i) => sum + i.price * i.qty, 0)
             };
 
-            // Сохраняем заказ в localStorage (чтобы админ мог его прочитать)
             let orders = JSON.parse(localStorage.getItem('shop_orders')) || [];
             orders.push(order);
             localStorage.setItem('shop_orders', JSON.stringify(orders));
