@@ -185,7 +185,7 @@ const products = [
                     <div class="product-name">${p.name}</div>
                     <div class="product-price">${p.price} ₽</div>
                     <div class="product-barcode">ШК: ${p.barcode}</div>
-                    <div class="product-expiry ${expiryClass}">Срок годн.: ${expiryText}</div>
+                    <div class="product-expiry ${expiryClass}">Срок годнности: ${expiryText}</div>
                     <div class="stock-badge ${stockClass}">${stockText}</div>
                     <button class="btn-add" data-id="${p.id}" ${btnDisabled} onclick="addToCart('${p.id}')">${btnText}</button>
                 `;
