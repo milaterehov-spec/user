@@ -15,7 +15,7 @@
             --panel-bg: #ffffff;
         }
         body { background-color: var(--bg); font-family: Arial, sans-serif; margin: 0; padding: 0; color: #333; }
-        header { background: var(--primary); color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; }
+        header { background: var(--primary); color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
         .cart-summary { background: #fff; border: 1px solid #ddd; padding: 8px 14px; border-radius: 4px; cursor: pointer; }
         .cart-total { font-weight: bold; color: var(--accent); }
         .wrapper { max-width: 1100px; margin: 20px auto; padding: 0 15px; }
@@ -46,18 +46,33 @@
         .order-form { margin-top: 25px; background: var(--panel-bg); padding: 20px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.08); }
         .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
         .form-full { grid-column: 1 / -1; }
-        input, textarea { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
+        input, textarea { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
         button.btn-submit { background: var(--primary); color: white; border: none; padding: 12px 24px; border-radius: 6px; cursor: pointer; font-size: 1.05rem; margin-top: 10px; }
         button.btn-submit:hover { background: #1a252f; }
+        .orders-panel { background: var(--panel-bg); border-radius: 8px; padding: 20px; margin-top: 30px; box-shadow: 0 2px 6px rgba(0,0,0,0.08); }
+        .orders-panel h2 { margin-top: 0; }
+        .order-card { border: 1px solid #e0e0e0; border-radius: 8px; padding: 14px; margin-bottom: 12px; background: #fafbfc; }
+        .order-card .order-meta { color: #666; font-size: 0.9rem; margin-bottom: 6px; }
+        .order-card table { width: 100%; border-collapse: collapse; margin: 8px 0; }
+        .order-card th, .order-card td { border: 1px solid #eee; padding: 6px 8px; text-align: left; font-size: 0.9rem; }
+        .order-total { font-weight: bold; color: var(--primary); }
+        .no-orders { color: #888; text-align: center; padding: 20px; }
+        .btn-orders { background: var(--primary); color: #fff; border: none; padding: 10px 16px; border-radius: 6px; cursor: pointer; margin-right: 10px; }
+        .btn-orders:hover { background: #1a252f; }
+        .orders-head { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+        .btn-clear { background: transparent; border: 1px solid #d9534f; color: #d9534f; padding: 8px 14px; border-radius: 6px; cursor: pointer; }
         footer { text-align: center; padding: 20px; color: #888; font-size: 0.9rem; }
     </style>
 </head>
 <body>
     <header>
         <h1>Магазин: каталог и заказ</h1>
-        <div class="cart-summary" onclick="window.scrollTo({top: document.getElementById('cart').offsetTop, behavior: 'smooth'})">
-            Корзина: <span class="cart-total" id="cartTotal">0 ₽</span>
-            (<span id="cartCount">0</span> позиций)
+        <div style="display:flex; gap:10px; align-items:center;">
+            <button class="btn-orders" onclick="window.scrollTo({top: document.getElementById('orders').offsetTop, behavior: 'smooth'}); renderOrders();">Мои заказы</button>
+            <div class="cart-summary" onclick="window.scrollTo({top: document.getElementById('cart').offsetTop, behavior: 'smooth'})">
+                Корзина: <span class="cart-total" id="cartTotal">0 ₽</span>
+                (<span id="cartCount">0</span> позиций)
+            </div>
         </div>
     </header>
 
@@ -105,37 +120,49 @@
             <form id="orderForm">
                 <div class="form-row">
                     <div>
-                        <label><b>ФИО</b></label>
-                        <input type="text" required placeholder="Иванов Иван Иванович">
+                        <label for="orderName"><b>ФИО</b></label>
+                        <input type="text" id="orderName" name="name" required placeholder="Иванов Иван Иванович">
                     </div>
                     <div>
-                        <label><b>Телефон</b></label>
-                        <input type="tel" required placeholder="+7 (999) 000-00-00">
+                        <label for="orderPhone"><b>Телефон</b></label>
+                        <input type="tel" id="orderPhone" name="phone" required pattern="[0-9+()\-\s]{10,}" title="Введите корректный номер телефона" placeholder="+7 (999) 000-00-00">
                     </div>
                 </div>
                 <div class="form-row form-full">
-                    <label><b>Комментарий к заказу</b></label>
-                    <textarea rows="3" placeholder="Самовывоз, доставка, особые пожелания…"></textarea>
+                    <label for="orderComment"><b>Комментарий к заказу</b></label>
+                    <textarea id="orderComment" name="comment" rows="3" placeholder="Самовывоз, доставка, особые пожелания…"></textarea>
                 </div>
                 <button type="submit" class="btn-submit">Отправить заказ</button>
             </form>
         </div>
     </div>
 
+    <div class="wrapper" id="orders">
+        <div class="orders-panel">
+            <div class="orders-head">
+                <h2>Мои заказы</h2>
+                <button class="btn-clear" onclick="clearOrders()">Очистить историю</button>
+            </div>
+            <div id="ordersList">
+                <!-- Заказы будут добавлены JS -->
+            </div>
+        </div>
+    </div>
+
     <footer>
-        Режим прототипа. Данные не сохраняются в базе.
+        Режим прототипа. Данные хранятся локально в браузере (localStorage).
     </footer>
 
     <script>
-const products = [ 
-{ id: '1', name: 'Масло сливочное безлактозное DANKE 82.5%, фас. в фольгу, 160гр', price: 135, stock: 9, barcode: '4607012345678', expiry: '2026-10-15' }, 
-{ id: '2', name: 'Молоко 1,5% ультрапаст "Тетра-Брик-Асептик-Сквэр" 1000мл ТМ "Милкавита"', price: 65, stock: 126, barcode: '4811309012580' , expiry: '2026-09-01' }, 
-{ id: '3', name: 'Молоко 3,2% ультрапаст "Тетра-Брик-Асептик-Сквэр" 1000мл ТМ "Милкавита"', price: 85, stock: 4, barcode: '4810123000018', expiry: '2026-08-28' }, 
-{ id: '4', name: 'Напиток Тайран по-турецки со вкусом солен огурца с укропом м.д.ж. 1,5%, стакан из полипропил, 220 гр', price: 22, stock: 4, barcode: '4600123000025', expiry: '2026-08-23' }, 
-{ id: '5', name: 'Сливки питьевые ультрапастеризованные массовой долей жира 20%, 500г', price: 115, stock: 529, barcode: '4600123000032', expiry: '2026-12-01' }, 
-{ id: '6', name: 'Кефир 2,5% пэт-бутылка 900г ТМ "Милкавита"', price: 55, stock: 60, barcode: '4600123000049', expiry: '2026-08-25' } 
+const products = [
+{ id: '1', name: 'Масло сливочное безлактозное DANKE 82.5%, фас. в фольгу, 160гр', price: 135, stock: 9, barcode: '4607012345678', expiry: '2026-10-15' },
+{ id: '2', name: 'Молоко 1,5% ультрапаст "Тетра-Брик-Асептик-Сквэр" 1000мл ТМ "Милкавита"', price: 65, stock: 126, barcode: '4811309012580', expiry: '2026-09-01' },
+{ id: '3', name: 'Молоко 3,2% ультрапаст "Тетра-Брик-Асептик-Сквэр" 1000мл ТМ "Милкавита"', price: 85, stock: 4, barcode: '4810123000018', expiry: '2026-08-28' },
+{ id: '4', name: 'Напиток Тайран по-турецки со вкусом солен огурца с укропом м.д.ж. 1,5%, стакан из полипропил, 220 гр', price: 22, stock: 4, barcode: '4600123000025', expiry: '2026-08-23' },
+{ id: '5', name: 'Сливки питьевые ультрапастеризованные массовой долей жира 20%, 500г', price: 115, stock: 529, barcode: '4600123000032', expiry: '2026-12-01' },
+{ id: '6', name: 'Кефир 2,5% пэт-бутылка 900г ТМ "Милкавита"', price: 55, stock: 60, barcode: '4600123000049', expiry: '2026-08-25' }
 ];
-       
+
         const grid = document.getElementById('productsGrid');
         const searchInput = document.getElementById('userSearch');
         const cartBody = document.getElementById('cartBody');
@@ -146,17 +173,21 @@ const products = [
 
         let cart = [];
 
+        function todayStart() {
+            const d = new Date();
+            d.setHours(0, 0, 0, 0);
+            return d;
+        }
+
         function renderProducts(list) {
             grid.innerHTML = '';
             list.forEach(p => {
                 const el = document.createElement('div');
                 el.className = 'product-card';
 
-                // Проверка срока годности
                 const expiryDate = new Date(p.expiry);
-                const today = new Date();
-                today.setHours(0, 0, 0, 0); // Сравниваем только даты без времени
-                
+                const today = todayStart();
+
                 let expiryClass = 'expiry-ok';
                 if (expiryDate <= today) {
                     expiryClass = 'expiry-expired';
@@ -176,7 +207,6 @@ const products = [
                     stockText = `Осталось: ${p.stock} шт`;
                 }
 
-                // Блокируем товар, если он просрочен или закончился
                 const isExpired = expiryDate <= today;
                 const btnDisabled = p.stock <= 0 || isExpired ? 'disabled' : '';
                 const btnText = p.stock <= 0 ? 'Нет в наличии' : (isExpired ? 'Просрочен' : 'В корзину');
@@ -185,14 +215,14 @@ const products = [
                     <div class="product-name">${p.name}</div>
                     <div class="product-price">${p.price} ₽</div>
                     <div class="product-barcode">ШК: ${p.barcode}</div>
-                    <div class="product-expiry ${expiryClass}">Срок годнности: ${expiryText}</div>
+                    <div class="product-expiry ${expiryClass}">Срок годности: ${expiryText}</div>
                     <div class="stock-badge ${stockClass}">${stockText}</div>
                     <button class="btn-add" data-id="${p.id}" ${btnDisabled} onclick="addToCart('${p.id}')">${btnText}</button>
                 `;
                 grid.appendChild(el);
             });
         }
-        
+
         searchInput.addEventListener('input', (e) => {
             const query = e.target.value.toLowerCase();
             const filtered = products.filter(p => p.name.toLowerCase().includes(query));
@@ -202,11 +232,9 @@ const products = [
         window.addToCart = function(id) {
             const product = products.find(p => p.id === id);
             if (!product) return;
-            
-            // Дополнительная проверка перед добавлением (защита от быстрого клика/скана)
+
             const expiryDate = new Date(product.expiry);
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
+            const today = todayStart();
             if (expiryDate <= today || product.stock <= 0) {
                 alert('Этот товар нельзя добавить в корзину.');
                 return;
@@ -221,31 +249,33 @@ const products = [
                     return;
                 }
             } else {
-                cart.push({ 
-                    id: product.id, 
-                    name: product.name, 
-                    price: product.price, 
-                    stock: product.stock, 
+                cart.push({
+                    id: product.id,
+                    name: product.name,
+                    price: product.price,
+                    stock: product.stock,
                     barcode: product.barcode,
-                    expiry: product.expiry, /* Сохраняем срок годности */
-                    qty: 1 
+                    expiry: product.expiry,
+                    qty: 1
                 });
             }
             updateCart();
         };
 
-        function setCartQty(id, delta) {
+        window.setCartQty = function(id, delta) {
             const item = cart.find(c => c.id === id);
             if (!item) return;
-            const maxQty = products.find(p => p.id === id).stock;
+            const product = products.find(p => p.id === id);
+            if (!product) return;
+            const maxQty = product.stock;
             item.qty = Math.max(1, Math.min(item.qty + delta, maxQty));
             updateCart();
-        }
+        };
 
-        function removeFromCart(id) {
+        window.removeFromCart = function(id) {
             cart = cart.filter(c => c.id !== id);
             updateCart();
-        }
+        };
 
         function updateCart() {
             cartBody.innerHTML = '';
@@ -287,6 +317,54 @@ const products = [
             }
         }
 
+        function getOrders() {
+            try {
+                return JSON.parse(localStorage.getItem('shop_orders')) || [];
+            } catch (e) {
+                return [];
+            }
+        }
+
+        window.renderOrders = function() {
+            const orders = getOrders();
+            const list = document.getElementById('ordersList');
+
+            if (orders.length === 0) {
+                list.innerHTML = '<div class="no-orders">Заказов пока нет</div>';
+                return;
+            }
+
+            list.innerHTML = '';
+            [...orders].reverse().forEach(order => {
+                const card = document.createElement('div');
+                card.className = 'order-card';
+                let rows = '';
+                order.items.forEach(item => {
+                    rows += `<tr><td>${item.name}</td><td>${item.barcode}</td><td>${item.qty} шт</td><td>${item.price} ₽</td><td>${item.price * item.qty} ₽</td></tr>`;
+                });
+
+                card.innerHTML = `
+                    <div class="order-meta">
+                        <b>Заказ №${order.id}</b> — ${order.timestamp}<br>
+                        Клиент: ${order.user.name} · Телефон: ${order.user.phone}
+                        ${order.user.comment ? ` · Комментарий: ${order.user.comment}` : ''}
+                    </div>
+                    <table>
+                        <thead><tr><th>Товар</th><th>ШК</th><th>Кол-во</th><th>Цена</th><th>Сумма</th></tr></thead>
+                        <tbody>${rows}</tbody>
+                    </table>
+                    <div class="order-total">Итого: ${order.total} ₽</div>
+                `;
+                list.appendChild(card);
+            });
+        };
+
+        window.clearOrders = function() {
+            if (!confirm('Удалить всю историю заказов?')) return;
+            localStorage.removeItem('shop_orders');
+            renderOrders();
+        };
+
         document.getElementById('orderForm').addEventListener('submit', function(e) {
             e.preventDefault();
             if (cart.length === 0) {
@@ -299,24 +377,32 @@ const products = [
                 id: Date.now(),
                 timestamp: new Date().toLocaleString('ru-RU'),
                 user: {
-                    name: form[0].value,
-                    phone: form[1].value,
-                    comment: form[2].value
+                    name: form.elements.name.value.trim(),
+                    phone: form.elements.phone.value.trim(),
+                    comment: form.elements.comment.value.trim()
                 },
                 items: [...cart],
                 total: cart.reduce((sum, i) => sum + i.price * i.qty, 0)
             };
 
-            let orders = JSON.parse(localStorage.getItem('shop_orders')) || [];
+            if (!order.user.name || !order.user.phone) {
+                alert('Заполните ФИО и телефон');
+                return;
+            }
+
+            let orders = getOrders();
             orders.push(order);
             localStorage.setItem('shop_orders', JSON.stringify(orders));
 
             alert('Заказ оформлен! Спасибо.');
             cart = [];
+            form.reset();
             updateCart();
+            renderOrders();
         });
 
         renderProducts(products);
+        updateCart();
     </script>
 </body>
 </html>
