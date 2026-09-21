@@ -1,376 +1,510 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Магазин + Админ-панель</title>
-<style>
-:root{--primary:#2c3e50;--accent:#3498db;--danger:#d9534f;--warning:#f39c12;--success:#27ae60;--bg:#f4f6f9;--panel:#fff}
-*{box-sizing:border-box}
-body{background:var(--bg);font-family:Arial,sans-serif;margin:0;color:#333}
-header{background:var(--primary);color:#fff;padding:14px 20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px}
-header h1{font-size:1.2rem;margin:0}
-.cart-summary{background:#fff;color:#333;border:1px solid #ddd;padding:8px 14px;border-radius:6px;cursor:pointer;font-size:.95rem}
-.cart-total{font-weight:bold;color:var(--accent)}
-.tab-bar{display:flex;background:var(--primary)}
-.tab-bar button{flex:1;padding:12px;border:none;background:#34495e;color:#ccc;cursor:pointer;font-size:1rem}
-.tab-bar button.active{background:var(--bg);color:var(--primary);font-weight:bold}
-.tab-bar button:not(.active):hover{background:#2c3e50;color:#fff}
-.tab-content{display:none}
-.tab-content.active{display:block}
-.wrapper{max-width:1100px;margin:20px auto;padding:0 15px}
-.search-box{text-align:center;margin-bottom:20px}
-#userSearch{padding:8px 12px;border:1px solid #ccc;border-radius:4px;width:300px;max-width:100%}
-.products-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:18px}
-.product-card{background:var(--panel);border:1px solid #e0e0e0;border-radius:8px;padding:16px;text-align:center;box-shadow:0 2px 6px rgba(0,0,0,.06);display:flex;flex-direction:column}
-.product-name{font-weight:bold;font-size:1rem;margin-bottom:8px;word-break:break-word}
-.product-price{font-size:1.1rem;color:var(--primary);font-weight:600;margin-bottom:8px}
-.product-barcode{font-size:.9rem;color:#666;font-family:monospace;margin-bottom:8px}
-.product-expiry{font-size:.85rem;margin-bottom:8px}
-.expiry-ok{color:#27ae60}
-.expiry-soon{color:#f39c12}
-.expiry-expired{color:#c0392b;font-weight:bold}
-.stock-badge{display:inline-block;padding:4px 8px;border-radius:4px;font-size:.85rem;font-weight:500;margin-bottom:12px}
-.stock-ok{background:#e8f5e9;color:var(--success)}
-.stock-medium{background:#fff3cd;color:var(--warning)}
-.stock-low{background:#f8d7da;color:var(--danger)}
-.btn-add{background:var(--success);color:#fff;border:none;padding:10px;border-radius:6px;cursor:pointer;font-size:1rem;width:100%;margin-top:auto}
-.btn-add:hover{background:#219150}
-.btn-add:disabled{background:#ccc;cursor:not-allowed}
-.panel{background:var(--panel);border-radius:8px;padding:20px;margin-top:20px;box-shadow:0 2px 6px rgba(0,0,0,.08)}
-table{width:100%;border-collapse:collapse;background:var(--panel)}
-th,td{border:1px solid #ddd;padding:8px;text-align:left;vertical-align:top;font-size:.88rem;word-break:break-word}
-th{background:#f8f9fa}
-.cart-list th,.cart-list td{vertical-align:middle}
-.cart-qty-input{width:60px;padding:6px;border:1px solid #ccc;border-radius:4px;text-align:center}
-.btn-remove{background:transparent;border:1px solid #ff4d4d;color:#ff4d4d;padding:4px 10px;border-radius:4px;cursor:pointer}
-.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
-.form-full{grid-column:1/-1}
-input,textarea{width:100%;padding:8px;border:1px solid #ccc;border-radius:4px}
-.btn-submit{background:var(--primary);color:#fff;border:none;padding:12px 24px;border-radius:6px;cursor:pointer;font-size:1.05rem;margin-top:10px}
-.btn-submit:hover{background:#1a252f}
-button.small{padding:4px 8px;font-size:.8rem;border:none;border-radius:4px;color:#fff;cursor:pointer;margin:2px 2px 0 0}
-.btn-danger{background:var(--danger)}
-.btn-warning{background:var(--warning)}
-.btn-primary{background:var(--primary)}
-.btn-success{background:var(--success)}
-.status-new{color:var(--danger);font-weight:bold}
-.status-accepted{color:var(--success);font-weight:bold}
-.admin-search{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:15px}
-#userPhoneFilter{padding:8px;border:1px solid #ccc;border-radius:4px;width:250px}
-.orders-head{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:10px}
-.btn-clear{background:transparent;border:1px solid var(--danger);color:var(--danger);padding:8px 14px;border-radius:6px;cursor:pointer}
-.no-orders{color:#888;text-align:center;padding:20px}
-footer{text-align:center;padding:20px;color:#888;font-size:.9rem}
-@media(max-width:600px){.form-row{grid-template-columns:1fr}}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Магазин: каталог и заказ</title>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --accent: #3498db;
+            --danger: #d9534f;
+            --warning: #f39c12;
+            --success: #27ae60;
+            --bg: #f4f6f9;
+            --panel-bg: #ffffff;
+        }
+        body { background-color: var(--bg); font-family: Arial, sans-serif; margin: 0; padding: 0; color: #333; }
+        header { background: var(--primary); color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; }
+        .cart-summary { background: #fff; border: 1px solid #ddd; padding: 8px 14px; border-radius: 4px; cursor: pointer; }
+        .cart-total { font-weight: bold; color: var(--accent); }
+        .wrapper { max-width: 1100px; margin: 20px auto; padding: 0 15px; }
+        .search-box { margin-bottom: 20px; text-align: center; }
+        #userSearch { padding: 8px 12px; border: 1px solid #ccc; border-radius: 4px; width: 300px; }
+        .products-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 20px; }
+        .product-card { background: var(--panel-bg); border: 1px solid #e0e0e0; border-radius: 8px; padding: 16px; text-align: center; box-shadow: 0 2px 6px rgba(0,0,0,0.06); display: flex; flex-direction: column; justify-content: space-between; height: 100%; }
+        .product-name { font-weight: bold; font-size: 1.05rem; margin-bottom: 8px; word-break: break-word; }
+        .product-price { font-size: 1.1rem; color: var(--primary); margin-bottom: 10px; font-weight: 600; }
+        .product-barcode { font-size: 1rem; color: #666; margin-bottom: 8px; font-family: monospace; letter-spacing: 0.5px; }
+        .product-expiry { font-size: 0.85rem; margin-bottom: 10px; }
+        .expiry-ok { color: #27ae60; }
+        .expiry-soon { color: #f39c12; }
+        .expiry-expired { color: #c0392b; font-weight: bold; }
+        .stock-badge { display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 0.85rem; font-weight: 500; margin-bottom: 12px; transition: background 0.2s, color 0.2s; }
+        .stock-ok { background: #e8f5e9; color: var(--success); }
+        .stock-medium { background: #fff3cd; color: var(--warning); }
+        .stock-low { background: #f8d7da; color: var(--danger); }
+        .in-cart-note { font-size: 0.8rem; color: var(--accent); margin: -8px 0 10px; }
+        button.btn-add { background: var(--success); color: white; border: none; padding: 10px 16px; border-radius: 6px; cursor: pointer; font-size: 1rem; width: 100%; margin-top: auto; }
+        button.btn-add:hover:not(:disabled) { background: #219150; }
+        button.btn-add:disabled { background: #ccc; cursor: not-allowed; }
+        .cart-panel { background: var(--panel-bg); border-radius: 8px; padding: 20px; margin-top: 30px; box-shadow: 0 2px 6px rgba(0,0,0,0.08); }
+        .cart-empty { color: #888; text-align: center; padding: 20px; }
+        .cart-list { width: 100%; border-collapse: collapse; }
+        .cart-list th, .cart-list td { border: 1px solid #ddd; padding: 10px; text-align: left; vertical-align: middle; }
+        .cart-qty-input { width: 60px; padding: 6px; border: 1px solid #ccc; border-radius: 4px; text-align: center; }
+        .qty-hint { font-size: 0.75rem; color: #888; margin-top: 4px; }
+        .btn-remove { background: transparent; border: 1px solid #ff4d4d; color: #ff4d4d; padding: 4px 10px; border-radius: 4px; cursor: pointer; }
+        .order-form { margin-top: 25px; background: var(--panel-bg); padding: 20px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.08); }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+        .form-full { grid-column: 1 / -1; }
+        input, textarea { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
+        button.btn-submit { background: var(--primary); color: white; border: none; padding: 12px 24px; border-radius: 6px; cursor: pointer; font-size: 1.05rem; margin-top: 10px; }
+        button.btn-submit:hover { background: #1a252f; }
+        footer { text-align: center; padding: 20px; color: #888; font-size: 0.9rem; }
+
+        /* СТИЛИ ЧАТА АДМИНА */
+        .admin-chat {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 350px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+            font-size: 0.9rem;
+            display: flex;
+            flex-direction: column;
+            z-index: 1000;
+        }
+        .admin-chat-header {
+            background: var(--primary);
+            color: white;
+            padding: 10px 15px;
+            border-top-left-radius: 8px;
+            border-top-right-radius: 8px;
+            font-weight: bold;
+        }
+        .admin-chat-messages {
+            height: 300px;
+            overflow-y: auto;
+            padding: 15px;
+            background: #f9fafb;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .message {
+            max-width: 75%;
+            padding: 8px 12px;
+            border-radius: 18px;
+            line-height: 1.4;
+            word-break: break-word;
+        }
+        .message.user {
+            align-self: flex-end;
+            background: var(--accent);
+            color: white;
+        }
+        .message.admin {
+            align-self: flex-start;
+            background: #e9ecef;
+            color: #333;
+        }
+        .admin-chat-form {
+            display: flex;
+            border-top: 1px solid #eee;
+        }
+        .admin-chat-form input {
+            flex-grow: 1;
+            border: none;
+            padding: 12px 15px;
+            font-size: 0.95rem;
+        }
+        .admin-chat-form button {
+            background: var(--success);
+            color: white;
+            border: none;
+            padding: 0 20px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .admin-chat-form button:hover {
+            background: #219150;
+        }
+    </style>
 </head>
 <body>
-<header>
-<h1>Магазин + Админ-панель</h1>
-<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-<span style="font-size:.85rem;color:#ccc">Вы: <b id="currentAdmin">Иванов А.О.</b></span>
-<div class="cart-summary" onclick="switchTab('shop');setTimeout(()=>document.getElementById('cart').scrollIntoView({behavior:'smooth'}),100)">
-Корзина: <span class="cart-total" id="cartTotal">0 ₽</span> (<span id="cartCount">0</span>)
-</div>
-</div>
-</header>
+    <header>
+        <h1>Магазин: каталог и заказ</h1>
+        <div class="cart-summary" onclick="window.scrollTo({top: document.getElementById('cart').offsetTop, behavior: 'smooth'})">
+            Корзина: <span class="cart-total" id="cartTotal">0 ₽</span>
+            (<span id="cartCount">0</span> позиций)
+        </div>
+    </header>
 
-<div class="tab-bar">
-<button id="tabBtnShop" class="active" onclick="switchTab('shop')">Каталог и заказ</button>
-<button id="tabBtnAdmin" onclick="switchTab('admin')">Админ-панель</button>
-</div>
+    <div class="wrapper">
+        <div class="search-box">
+            <input type="text" id="userSearch" placeholder="Поиск товара…">
+        </div>
+        <div class="products-grid" id="productsGrid">
+            <!-- Карточки товаров будут добавлены JS -->
+        </div>
+    </div>
 
-<!-- ====== МАГАЗИН ====== -->
-<div id="tabShop" class="tab-content active">
-<div class="wrapper">
-<div class="search-box"><input type="text" id="userSearch" placeholder="Поиск товара…"></div>
-<div class="products-grid" id="productsGrid"></div>
-</div>
+    <div class="wrapper" id="cart">
+        <div class="cart-panel">
+            <h2>Ваша корзина</h2>
+            <table class="cart-list" id="cartTable">
+                <thead>
+                    <tr>
+                        <th>Товар</th>
+                        <th>ШК</th>
+                        <th>Годен до</th>
+                        <th>Цена (₽)</th>
+                        <th>Кол-во</th>
+                        <th>Сумма (₽)</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody id="cartBody">
+                    <!-- Позиции корзины будут добавлены JS -->
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="5" style="text-align:right; font-weight:bold;">Итого:</td>
+                        <td id="cartFooterTotal" style="font-weight:bold; text-align:left;">0 ₽</td>
+                        <td></td>
+                    </tr>
+                </tfoot>
+            </table>
+            <div id="cartEmpty" class="cart-empty" style="display:none;">Корзина пуста</div>
+        </div>
 
-<div class="wrapper" id="cart">
-<div class="panel">
-<h2>Ваша корзина</h2>
-<table class="cart-list">
-<thead><tr><th>Товар</th><th>ШК</th><th>Годен до</th><th>Цена (₽)</th><th>Кол-во</th><th>Сумма (₽)</th><th></th></tr></thead>
-<tbody id="cartBody"></tbody>
-<tfoot><tr><td colspan="5" style="text-align:right;font-weight:bold">Итого:</td><td id="cartFooterTotal" style="font-weight:bold">0 ₽</td><td></td></tr></tfoot>
-</table>
-<div id="cartEmpty" class="no-orders" style="display:none">Корзина пуста</div>
-</div>
+        <div class="order-form">
+            <h3>Оформить заказ</h3>
+            <p style="margin-bottom:15px; color:#666;">Поля обязательны для заполнения</p>
+            <form id="orderForm">
+                <div class="form-row">
+                    <div>
+                        <label><b>ФИО</b></label>
+                        <input type="text" required placeholder="Иванов Иван Иванович">
+                    </div>
+                    <div>
+                        <label><b>Телефон</b></label>
+                        <input type="tel" required placeholder="+7 (999) 000-00-00">
+                    </div>
+                </div>
+                <div class="form-row form-full">
+                    <label><b>Комментарий к заказу</b></label>
+                    <textarea rows="3" placeholder="Самовывоз, доставка, особые пожелания…"></textarea>
+                </div>
+                <button type="submit" class="btn-submit">Отправить заказ</button>
+            </form>
+        </div>
+    </div>
 
-<div class="panel">
-<h3>Оформить заказ</h3>
-<p style="color:#666;margin-bottom:15px">Поля обязательны для заполнения</p>
-<form id="orderForm">
-<div class="form-row">
-<div><label for="orderName"><b>ФИО</b></label><input type="text" id="orderName" name="name" required placeholder="Иванов Иван Иванович"></div>
-<div><label for="orderPhone"><b>Телефон</b></label><input type="tel" id="orderPhone" name="phone" required placeholder="+7 (999) 000-00-00"></div>
-</div>
-<div class="form-row form-full"><label for="orderComment"><b>Комментарий к заказу</b></label><textarea id="orderComment" name="comment" rows="3" placeholder="Самовывоз, доставка, особые пожелания…"></textarea></div>
-<button type="submit" class="btn-submit">Отправить заказ</button>
-</form>
-</div>
-</div>
-</div>
+    <!-- БЛОК ЧАТА АДМИНА -->
+    <div class="admin-chat" id="adminChat">
+        <div class="admin-chat-header">Поддержка магазина</div>
+        <div class="admin-chat-messages" id="adminMessages"></div>
+        <form class="admin-chat-form" id="adminChatForm">
+            <input type="text" placeholder="Напишите сообщение..." autocomplete="off" required />
+            <button type="submit">Отправить</button>
+        </form>
+    </div>
 
-<!-- ====== АДМИН ====== -->
-<div id="tabAdmin" class="tab-content">
-<div class="wrapper">
-<div class="panel">
-<h2>Поиск заказов пользователя</h2>
-<p class="note" style="color:#666;font-size:.9rem">Введите телефон пользователя (+7...), чтобы увидеть его заказы.</p>
-<div class="admin-search">
-<label><b>Телефон:</b></label>
-<input type="text" id="userPhoneFilter" placeholder="+79990000000">
-<button class="btn-warning small" onclick="filterByPhone()">Найти</button>
-<button class="btn-primary small" onclick="loadOrders('')">Сбросить</button>
-</div>
-<div class="orders-head">
-<h2 style="margin:0">Список заказов</h2>
-<button class="btn-clear" onclick="clearOrders()">Очистить историю</button>
-</div>
-<p class="note" style="color:#666;font-size:.9rem">Кнопка «Принять» назначает заказ вам. Если заказ у другого админа — появится кнопка «Вернуть».</p>
-<div style="overflow-x:auto">
-<table>
-<thead><tr><th>ID / Дата</th><th>Пользователь</th><th>Телефон</th><th>Состав</th><th>ШК</th><th>Сумма</th><th>Комментарий</th><th>Статус</th><th>Назначен</th><th>Действие</th></tr></thead>
-<tbody id="ordersTableBody"></tbody>
-</table>
-</div>
-</div>
-</div>
-</div>
+    <footer>
+        Режим прототипа. Данные не сохраняются в базе.
+    </footer>
 
-<footer>Режим прототипа. Данные хранятся локально в браузере (localStorage).</footer>
-
-<script>
-const CURRENT_ADMIN_NAME='Иванов А.О.';
-document.getElementById('currentAdmin').textContent=CURRENT_ADMIN_NAME;
-
-const products=[
-{id:'1',name:'Масло сливочное безлактозное DANKE 82.5%, фас. в фольгу, 160гр',price:135,stock:9,barcode:'4607012345678',expiry:'2026-10-15'},
-{id:'2',name:'Молоко 1,5% ультрапаст "Тетра-Брик-Асептик-Сквэр" 1000мл ТМ "Милкавита"',price:65,stock:126,barcode:'4811309012580',expiry:'2026-09-01'},
-{id:'3',name:'Молоко 3,2% ультрапаст "Тетра-Брик-Асептик-Сквэр" 1000мл ТМ "Милкавита"',price:85,stock:4,barcode:'4810123000018',expiry:'2026-08-28'},
-{id:'4',name:'Напиток Тайран по-турецки со вкусом солен огурца с укропом м.д.ж. 1,5%, стакан из полипропил, 220 гр',price:22,stock:4,barcode:'4600123000025',expiry:'2026-08-23'},
-{id:'5',name:'Сливки питьевые ультрапастеризованные массовой долей жира 20%, 500г',price:115,stock:529,barcode:'4600123000032',expiry:'2026-12-01'},
-{id:'6',name:'Кефир 2,5% пэт-бутылка 900г ТМ "Милкавита"',price:55,stock:60,barcode:'4600123000049',expiry:'2026-08-25'}
+    <script>
+const products = [
+{ id: '1', name: 'Масло сливочное безлактозное DANKE 82.5%, фас. в фольгу, 160гр', price: 135, stock: 9, barcode: '4607012345678', expiry: '2026-10-15' },
+{ id: '2', name: 'Молоко 1,5% ультрапаст "Тетра-Брик-Асептик-Сквэр" 1000мл ТМ "Милкавита"', price: 65, stock: 126, barcode: '4811309012580' , expiry: '2026-09-01' },
+{ id: '3', name: 'Молоко 3,2% ультрапаст "Тетра-Брик-Асептик-Сквэр" 1000мл ТМ "Милкавита"', price: 85, stock: 4, barcode: '4810123000018', expiry: '2026-08-28' },
+{ id: '4', name: 'Напиток Тайран по-турецки со вкусом солен огурца с укропом м.д.ж. 1,5%, стакан из полипропил, 220 гр', price: 22, stock: 4, barcode: '4600123000025', expiry: '2026-08-23' },
+{ id: '5', name: 'Сливки питьевые ультрапастеризованные массовой долей жира 20%, 500г', price: 115, stock: 529, barcode: '4600123000032', expiry: '2026-12-01' },
+{ id: '6', name: 'Кефир 2,5% пэт-бутылка 900г ТМ "Милкавита"', price: 55, stock: 60, barcode: '4600123000049', expiry: '2026-08-25' }
 ];
 
-/* ---------- ВКЛАДКИ ---------- */
-function switchTab(name){
-document.querySelectorAll('.tab-content').forEach(el=>el.classList.remove('active'));
-document.querySelectorAll('.tab-bar button').forEach(el=>el.classList.remove('active'));
-document.getElementById('tab'+name.charAt(0).toUpperCase()+name.slice(1)).classList.add('active');
-document.getElementById('tabBtn'+name.charAt(0).toUpperCase()+name.slice(1)).classList.add('active');
-if(name==='admin')loadOrders('');
-}
+        const grid = document.getElementById('productsGrid');
+        const searchInput = document.getElementById('userSearch');
+        const cartBody = document.getElementById('cartBody');
+        const cartEmpty = document.getElementById('cartEmpty');
+        const cartTotalEl = document.getElementById('cartTotal');
+        const cartCountEl = document.getElementById('cartCount');
+        const cartFooterTotalEl = document.getElementById('cartFooterTotal');
 
-/* ---------- МАГАЗИН ---------- */
-const grid=document.getElementById('productsGrid');
-const searchInput=document.getElementById('userSearch');
-const cartBody=document.getElementById('cartBody');
-const cartEmpty=document.getElementById('cartEmpty');
-const cartTotalEl=document.getElementById('cartTotal');
-const cartCountEl=document.getElementById('cartCount');
-const cartFooterTotalEl=document.getElementById('cartFooterTotal');
-let cart=[];
+        let cart = [];
 
-function todayStart(){const d=new Date();d.setHours(0,0,0,0);return d;}
+        // --- НАЧАЛО КОДА ЧАТА ---
+        const adminChat = document.getElementById('adminChat');
+        const adminMessages = document.getElementById('adminMessages');
+        const adminChatForm = document.getElementById('adminChatForm');
 
-function renderProducts(list){
-grid.innerHTML='';
-list.forEach(p=>{
-const el=document.createElement('div');el.className='product-card';
-const exp=new Date(p.expiry),today=todayStart();
-let ec='expiry-ok';
-if(exp<=today)ec='expiry-expired';
-else if((exp-today)/(1000*60*60*24)<=7)ec='expiry-soon';
-let sc='stock-ok',st=p.stock+' шт в наличии';
-if(p.stock<10){sc='stock-low';st='ОСТАТОК: '+p.stock+' шт — мало!';}
-else if(p.stock<30){sc='stock-medium';st='Осталось: '+p.stock+' шт';}
-const isExp=exp<=today;
-const dis=(p.stock<=0||isExp)?'disabled':'';
-const txt=p.stock<=0?'Нет в наличии':(isExp?'Просрочен':'В корзину');
-el.innerHTML='<div class="product-name">'+p.name+'</div>'+
-'<div class="product-price">'+p.price+' ₽</div>'+
-'<div class="product-barcode">ШК: '+p.barcode+'</div>'+
-'<div class="product-expiry '+ec+'">Срок годности: до '+p.expiry+'</div>'+
-'<div class="stock-badge '+sc+'">'+st+'</div>'+
-'<button class="btn-add" '+dis+' onclick="addToCart(\''+p.id+'\')">'+txt+'</button>';
-grid.appendChild(el);
-});
-}
+        function loadAdminHistory() {
+            const history = JSON.parse(localStorage.getItem('admin_chat_history')) || [];
+            if (history.length > 0) {
+                setTimeout(() => {
+                    history.forEach(msg => addMessageToChat(msg.text, msg.from));
+                }, 100);
+            }
+        }
 
-searchInput.addEventListener('input',e=>{
-const q=e.target.value.toLowerCase();
-renderProducts(products.filter(p=>p.name.toLowerCase().includes(q)));
-});
+        function saveAdminHistory(text, from) {
+            let history = JSON.parse(localStorage.getItem('admin_chat_history')) || [];
+            history.push({ text: text, from: from });
+            localStorage.setItem('admin_chat_history', JSON.stringify(history));
+        }
 
-window.addToCart=function(id){
-const p=products.find(x=>x.id===id);if(!p)return;
-const exp=new Date(p.expiry),today=todayStart();
-if(exp<=today||p.stock<=0){alert('Этот товар нельзя добавить в корзину.');return;}
-const ex=cart.find(c=>c.id===id);
-if(ex){
-if(ex.qty<p.stock)ex.qty++;
-else{alert('Это максимальное количество товара на складе!');return;}
-}else{
-cart.push({id:p.id,name:p.name,price:p.price,stock:p.stock,barcode:p.barcode,expiry:p.expiry,qty:1});
-}
-updateCart();
-};
+        function addMessageToChat(text, from) {
+            const messageEl = document.createElement('div');
+            messageEl.classList.add('message', from);
+            messageEl.textContent = text;
+            adminMessages.appendChild(messageEl);
+            adminMessages.scrollTop = adminMessages.scrollHeight;
+        }
 
-window.setCartQty=function(id,delta){
-const it=cart.find(c=>c.id===id);if(!it)return;
-const maxQty=(products.find(p=>p.id===id)||{}).stock||999;
-it.qty=Math.max(1,Math.min(it.qty+delta,maxQty));
-updateCart();
-};
+        adminChatForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const input = this.querySelector('input');
+            const text = input.value.trim();
+            if (!text) return;
 
-window.removeFromCart=function(id){cart=cart.filter(c=>c.id!==id);updateCart();};
+            addMessageToChat(text, 'user');
+            saveAdminHistory(text, 'user');
 
-function updateCart(){
-cartBody.innerHTML='';let total=0,count=0;
-cart.forEach(item=>{
-const sum=item.price*item.qty;total+=sum;count+=item.qty;
-const row=document.createElement('tr');
-row.innerHTML='<td>'+item.name+'</td><td>'+item.barcode+'</td><td>'+item.expiry+'</td><td>'+item.price+' ₽</td>'+
-'<td><button onclick="setCartQty(\''+item.id+'\',-1)" style="padding:2px 8px;margin-right:4px">−</button>'+
-'<input type="number" class="cart-qty-input" value="'+item.qty+'" readonly>'+
-'<button onclick="setCartQty(\''+item.id+'\',1)" style="padding:2px 8px">+</button></td>'+
-'<td>'+sum+' ₽</td><td><button class="btn-remove" onclick="removeFromCart(\''+item.id+'\')">Удалить</button></td>';
-cartBody.appendChild(row);
-});
-if(cart.length===0){
-cartEmpty.style.display='block';
-cartTotalEl.textContent='0 ₽';cartCountEl.textContent='0';cartFooterTotalEl.textContent='0 ₽';
-}else{
-cartEmpty.style.display='none';
-cartTotalEl.textContent=total+' ₽';cartCountEl.textContent=count;cartFooterTotalEl.textContent=total+' ₽';
-}
-}
+            setTimeout(() => {
+                const reply = "Здравствуйте! Ваш вопрос принят. Мы ответим вам по телефону или почте.";
+                addMessageToChat(reply, 'admin');
+                saveAdminHistory(reply, 'admin');
+            }, 1000);
 
-document.getElementById('orderForm').addEventListener('submit',function(e){
-e.preventDefault();
-if(cart.length===0){alert('Корзина пуста — нельзя оформить заказ');return;}
-const name=document.getElementById('orderName').value.trim();
-const phone=document.getElementById('orderPhone').value.trim();
-const comment=document.getElementById('orderComment').value.trim();
-if(!name||!phone){alert('Заполните ФИО и телефон');return;}
-const order={id:Date.now(),timestamp:new Date().toLocaleString('ru-RU'),user:{name:name,phone:phone,comment:comment},items:cart.map(i=>({...i})),total:cart.reduce((s,i)=>s+i.price*i.qty,0)};
-let orders=JSON.parse(localStorage.getItem('shop_orders'))||[];
-orders.push(order);
-localStorage.setItem('shop_orders',JSON.stringify(orders));
-alert('Заказ оформлен! Спасибо.');
-cart=[];this.reset();updateCart();
-});
+            input.value = '';
+        });
 
-/* ---------- АДМИН ---------- */
-let allOrdersCache=[];
+        loadAdminHistory();
+        // --- КОНЕЦ КОДА ЧАТА ---
 
-function escapeHtml(t){
-if(!t)return'';
-return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');
-}
+        // === ОСТАТКИ ===
+        // Доступный остаток = остаток на складе минус то, что уже лежит в корзине.
+        // Карточки и кнопки пересчитываются от этой функции, поэтому цифры всегда актуальны.
+        function getAvailableStock(id) {
+            const product = products.find(p => p.id === id);
+            if (!product) return 0;
+            const inCart = cart.find(c => c.id === id);
+            return Math.max(0, product.stock - (inCart ? inCart.qty : 0));
+        }
 
-function safeParseItems(raw){
-try{
-const r=Array.isArray(raw)?raw:raw?.items_json||raw?.items;
-if(Array.isArray(r))return r;
-if(typeof r==='string'&&r.trim().startsWith('['))return JSON.parse(r);
-return[];
-}catch(e){return[];}
-}
+        function getStockInfo(available) {
+            if (available <= 0) return { cls: 'stock-low', text: 'Нет в наличии' };
+            if (available < 10) return { cls: 'stock-low', text: `ОСТАТОК: ${available} шт — мало!` };
+            if (available < 30) return { cls: 'stock-medium', text: `Осталось: ${available} шт` };
+            return { cls: 'stock-ok', text: `${available} шт в наличии` };
+        }
 
-function loadOrders(filterPhone=''){
-const tbody=document.getElementById('ordersTableBody');
-tbody.innerHTML='<tr><td colspan="10" style="text-align:center">Загрузка данных...</td></tr>';
-let orders=JSON.parse(localStorage.getItem('shop_orders'))||[];
-allOrdersCache=orders;
-renderOrderList(orders.filter(o=>!filterPhone||o.user.phone===filterPhone));
-}
+        function isExpired(product) {
+            const expiryDate = new Date(product.expiry);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            return expiryDate <= today;
+        }
 
-function renderOrderList(orders){
-const tbody=document.getElementById('ordersTableBody');
-tbody.innerHTML='';
-orders.forEach(o=>{
-const items=safeParseItems(o.items);
-let itemsHtml='',barcodesHtml='';
-items.forEach(i=>{
-itemsHtml+=i.qty+'×'+escapeHtml(i.name)+' ('+i.price+' ₽)<br>';
-barcodesHtml+='<code title="'+escapeHtml(i.name)+'">'+escapeHtml(i.barcode||'-')+'</code><br>';
-});
-const assigned=o.assignedTo||'-';
-const mine=o.assignedTo===CURRENT_ADMIN_NAME;
-const free=!o.assignedTo;
-const manage=free||mine;
-const sc=o.status==='accepted'?'status-accepted':'status-new';
-const st=o.status==='accepted'?'Принят':'Новый';
-const row=document.createElement('tr');
-row.innerHTML='<td>#'+o.id+'<br><small>'+escapeHtml((o.timestamp||'').split(' ')[0])+'</small></td>'+
-'<td>'+escapeHtml(o.user.name||'—')+'</td>'+
-'<td>'+escapeHtml(o.user.phone||'—')+'</td>'+
-'<td>'+(itemsHtml||'—')+'</td>'+
-'<td>'+(barcodesHtml||'—')+'</td>'+
-'<td><b>'+o.total+' ₽</b></td>'+
-'<td>'+escapeHtml(o.user.comment||'—')+'</td>'+
-'<td class="'+sc+'">'+st+'</td>'+
-'<td>'+escapeHtml(assigned)+'</td>'+
-'<td>'+(manage
-?'<button class="btn-danger small" onclick="deleteOrder(\''+o.id+'\')">Удалить</button><br>'+
-(free?'<button class="btn-success small" onclick="acceptOrder(\''+o.id+'\')">Принять</button>'
-:'<button class="btn-warning small" onclick="releaseOrder(\''+o.id+'\')">Вернуть</button>')
-:'<span style="color:#999">Занят</span>')+'</td>';
-tbody.appendChild(row);
-});
-if(orders.length===0)tbody.innerHTML='<tr><td colspan="10" style="text-align:center;color:#888">Заказы не найдены</td></tr>';
-}
+        function renderProducts(list) {
+            grid.innerHTML = '';
+            list.forEach(p => {
+                const el = document.createElement('div');
+                el.className = 'product-card';
 
-function persistOrders(orders){
-localStorage.setItem('shop_orders',JSON.stringify(orders));
-allOrdersCache=orders;
-renderOrderList(allOrdersCache);
-}
+                const expiryDate = new Date(p.expiry);
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
 
-window.deleteOrder=function(id){
-if(!confirm('Удалить этот заказ?'))return;
-let orders=JSON.parse(localStorage.getItem('shop_orders'))||[];
-orders=orders.filter(o=>o.id!=id);
-persistOrders(orders);
-};
+                let expiryClass = 'expiry-ok';
+                if (expiryDate <= today) {
+                    expiryClass = 'expiry-expired';
+                } else if ((expiryDate - today) / (1000 * 60 * 60 * 24) <= 7) {
+                    expiryClass = 'expiry-soon';
+                }
 
-window.acceptOrder=function(id){
-let orders=JSON.parse(localStorage.getItem('shop_orders'))||[];
-const i=orders.findIndex(o=>o.id==id);
-if(i===-1)return;
-orders[i]={...orders[i],status:'accepted',assignedTo:CURRENT_ADMIN_NAME};
-persistOrders(orders);
-};
+                const expiryText = p.expiry ? `до ${p.expiry}` : '—';
 
-window.releaseOrder=function(id){
-if(!confirm('Вернуть заказ в общий доступ?'))return;
-let orders=JSON.parse(localStorage.getItem('shop_orders'))||[];
-const i=orders.findIndex(o=>o.id==id);
-if(i===-1)return;
-orders[i]={...orders[i],status:'new',assignedTo:''};
-persistOrders(orders);
-};
+                const available = getAvailableStock(p.id);
+                const reserved = p.stock - available;          // сколько уже в корзине
+                const info = getStockInfo(available);
+                const expired = expiryDate <= today;
 
-window.filterByPhone=function(){
-const phone=document.getElementById('userPhoneFilter').value.trim();
-if(!phone){alert('Введите номер телефона');return;}
-loadOrders(phone);
-};
+                const btnDisabled = available <= 0 || expired;
+                let btnText = 'В корзину';
+                if (expired) btnText = 'Просрочен';
+                else if (p.stock <= 0) btnText = 'Нет в наличии';
+                else if (available <= 0) btnText = 'Всё в корзине';
 
-window.clearOrders=function(){
-if(!confirm('Удалить всю историю заказов?'))return;
-localStorage.removeItem('shop_orders');
-loadOrders('');
-};
+                el.innerHTML = `
+                    <div class="product-name">${p.name}</div>
+                    <div class="product-price">${p.price} ₽</div>
+                    <div class="product-barcode">ШК: ${p.barcode}</div>
+                    <div class="product-expiry ${expiryClass}">Срок годности: ${expiryText}</div>
+                    <div class="stock-badge ${info.cls}">${info.text}</div>
+                    ${reserved > 0 ? `<div class="in-cart-note">В корзине: ${reserved} шт</div>` : ''}
+                    <button class="btn-add" data-id="${p.id}" ${btnDisabled ? 'disabled' : ''} onclick="addToCart('${p.id}')">${btnText}</button>
+                `;
+                grid.appendChild(el);
+            });
+        }
 
-/* ---------- СТАРТ ---------- */
-renderProducts(products);
-updateCart();
-</script>
+        // Перерисовка каталога с учётом текущего поиска
+        function refreshProducts() {
+            const query = searchInput.value.toLowerCase().trim();
+            const filtered = query
+                ? products.filter(p => p.name.toLowerCase().includes(query))
+                : products;
+            renderProducts(filtered);
+        }
+
+        // Единая точка синхронизации: корзина + остатки на карточках
+        function syncCart() {
+            updateCart();
+            refreshProducts();
+        }
+
+        searchInput.addEventListener('input', refreshProducts);
+
+        window.addToCart = function(id) {
+            const product = products.find(p => p.id === id);
+            if (!product) return;
+
+            if (isExpired(product) || product.stock <= 0) {
+                alert('Этот товар нельзя добавить в корзину.');
+                return;
+            }
+
+            const available = getAvailableStock(id);
+            if (available <= 0) {
+                alert('Это максимальное количество товара на складе!');
+                return;
+            }
+
+            const existing = cart.find(c => c.id === id);
+            if (existing) {
+                existing.qty += 1;
+            } else {
+                cart.push({
+                    id: product.id,
+                    name: product.name,
+                    price: product.price,
+                    barcode: product.barcode,
+                    expiry: product.expiry,
+                    qty: 1
+                });
+            }
+            syncCart();
+        };
+
+        function setCartQty(id, delta) {
+            const item = cart.find(c => c.id === id);
+            const product = products.find(p => p.id === id);
+            if (!item || !product) return;
+
+            const next = item.qty + delta;
+            if (next > product.stock) {
+                alert('Это максимальное количество товара на складе!');
+                return;
+            }
+            item.qty = Math.max(1, Math.min(next, product.stock));
+            syncCart();
+        }
+
+        function removeFromCart(id) {
+            cart = cart.filter(c => c.id !== id);
+            syncCart();
+        }
+
+        function updateCart() {
+            cartBody.innerHTML = '';
+            let total = 0;
+            let count = 0;
+
+            cart.forEach(item => {
+                const product = products.find(p => p.id === item.id);
+                const maxQty = product ? product.stock : item.qty;
+                const sum = item.price * item.qty;
+                total += sum;
+                count += item.qty;
+
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${item.name}</td>
+                    <td class="cart-barcode-cell">${item.barcode}</td>
+                    <td>${item.expiry}</td>
+                    <td>${item.price} ₽</td>
+                    <td>
+                        <button onclick="setCartQty('${item.id}', -1)" style="padding:2px 8px; margin-right:4px;">−</button>
+                        <input type="number" class="cart-qty-input" value="${item.qty}" readonly>
+                        <button onclick="setCartQty('${item.id}', 1)" style="padding:2px 8px;">+</button>
+                        <div class="qty-hint">макс: ${maxQty} шт</div>
+                    </td>
+                    <td>${sum} ₽</td>
+                    <td><button class="btn-remove" onclick="removeFromCart('${item.id}')">Удалить</button>
+                    </td>
+                `;
+                cartBody.appendChild(row);
+            });
+
+            if (cart.length === 0) {
+                cartEmpty.style.display = 'block';
+                cartTotalEl.textContent = '0 ₽';
+                cartCountEl.textContent = '0';
+                cartFooterTotalEl.textContent = '0 ₽';
+            } else {
+                cartEmpty.style.display = 'none';
+                cartTotalEl.textContent = total + ' ₽';
+                cartCountEl.textContent = count;
+                cartFooterTotalEl.textContent = total + ' ₽';
+            }
+        }
+
+        document.getElementById('orderForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            if (cart.length === 0) {
+                alert('Корзина пуста — нельзя оформить заказ');
+                return;
+            }
+
+            // Повторная проверка остатков на момент оформления
+            for (const item of cart) {
+                const product = products.find(p => p.id === item.id);
+                if (!product || product.stock < item.qty) {
+                    alert(`Товар «${item.name}» изменился по остаткам. Проверьте корзину.`);
+                    syncCart();
+                    return;
+                }
+            }
+
+            const form = this;
+            const order = {
+                id: Date.now(),
+                timestamp: new Date().toLocaleString('ru-RU'),
+                user: {
+                    name: form[0].value,
+                    phone: form[1].value,
+                    comment: form[2].value
+                },
+                items: [...cart],
+                total: cart.reduce((sum, i) => sum + i.price * i.qty, 0)
+            };
+
+            let orders = JSON.parse(localStorage.getItem('shop_orders')) || [];
+            orders.push(order);
+            localStorage.setItem('shop_orders', JSON.stringify(orders));
+
+            // Списываем заказанное со склада — остатки на карточках обновятся сразу
+            order.items.forEach(it => {
+                const product = products.find(p => p.id === it.id);
+                if (product) product.stock = Math.max(0, product.stock - it.qty);
+            });
+
+            alert('Заказ оформлен! Спасибо.');
+            cart = [];
+            syncCart();
+        });
+
+        // Автопересчёт: подхватывает смену суток (товар становится просроченным)
+        // и любые внешние изменения массива products.
+        setInterval(refreshProducts, 60000);
+
+        refreshProducts();
+    </script>
 </body>
 </html>
